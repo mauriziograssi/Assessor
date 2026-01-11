@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCC Session Assessor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #90a4ae;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #4fc3f7;
+            font-size: 1rem;
+        }
+
+        .form-group .hint {
+            font-size: 0.85rem;
+            color: #78909c;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            border: 2px dashed rgba(79, 195, 247, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.05);
+        }
+
+        .file-input-wrapper.has-file {
+            border-color: #66bb6a;
+            background: rgba(102, 187, 106, 0.1);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper .text {
+            color: #b0bec5;
+        }
+
+        .file-input-wrapper .filename {
+            color: #66bb6a;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #4fc3f7 0%, #2196f3 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(79, 195, 247, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #455a64;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(79, 195, 247, 0.2);
+            border-top-color: #4fc3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: #90a4ae;
+        }
+
+        .result {
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-header h2 {
+            color: #4fc3f7;
+        }
+
+        .new-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid #4fc3f7;
+            color: #4fc3f7;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .new-btn:hover {
+            background: #4fc3f7;
+            color: #1a1a2e;
+        }
+
+        .result-content {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            line-height: 1.8;
+        }
+
+        .result-content h3 {
+            color: #4fc3f7;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.2);
+        }
+
+        .result-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .result-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .result-content th,
+        .result-content td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-content th {
+            color: #4fc3f7;
+            font-weight: 600;
+        }
+
+        .match { color: #66bb6a; }
+        .mismatch { color: #ef5350; }
+        .ai-only { color: #ffb74d; }
+        .human-only { color: #ba68c8; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(79, 195, 247, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4fc3f7;
+        }
+
+        .stat-box .label {
+            color: #90a4ae;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: rgba(239, 83, 80, 0.1);
+            border: 1px solid #ef5350;
+            border-radius: 12px;
+            padding: 20px;
+            color: #ef5350;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #546e7a;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 PCC Session Assessor</h1>
+            <p>Valutazione automatica delle competenze PCC con confronto AI vs Umano</p>
+        </div>
+
+        <div class="card">
+            <form id="assessorForm">
+                <div class="form-group">
+                    <label>📄 Transcript della Sessione</label>
+                    <p class="hint">Carica il file con la trascrizione della sessione di coaching</p>
+                    <div class="file-input-wrapper" id="transcriptWrapper">
+                        <div class="icon">📁</div>
+                        <div class="text">Clicca o trascina il file qui</div>
+                        <div class="filename" id="transcriptFilename"></div>
+                        <input type="file" id="transcript" name="transcript" accept=".txt,.docx,.doc" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📋 Valutazione Umana</label>
+                    <p class="hint">Carica il file .docx con la valutazione fatta dal valutatore umano</p>
+                    <div class="file-input-wrapper" id="evaluationWrapper">
+                        <div class="icon">📁</div>
+                        <div class="text">Clicca o trascina il file qui</div>
+                        <div class="filename" id="evaluationFilename"></div>
+                        <input type="file" id="evaluation" name="evaluation" accept=".docx,.doc" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🚀 Avvia Valutazione
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analisi in corso... L'AI sta valutando la sessione</p>
+                <p style="font-size: 0.85rem; margin-top: 10px;">Questo processo può richiedere 30-60 secondi</p>
+            </div>
+
+            <div class="error" id="error">
+                <strong>❌ Errore:</strong> <span id="errorMessage"></span>
+            </div>
+        </div>
+
+        <div class="card result" id="result">
+            <div class="result-header">
+                <h2>📊 Risultato Valutazione</h2>
+                <button class="new-btn" onclick="resetForm()">+ Nuova Valutazione</button>
+            </div>
+            <div class="result-content" id="resultContent">
+                <!-- Il risultato verrà inserito qui -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Zero2Stars © 2025 - AI Coaching Assessment Tool</p>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ IMPORTANTE: Sostituisci questo URL con il tuo webhook n8n
+        const WEBHOOK_URL = 'https://automation.zero2stars.com/webhook/assessor';
+
+        // File input handling
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const wrapper = this.parentElement;
+                const filenameDiv = wrapper.querySelector('.filename');
+                
+                if (this.files.length > 0) {
+                    wrapper.classList.add('has-file');
+                    filenameDiv.textContent = '✓ ' + this.files[0].name;
+                } else {
+                    wrapper.classList.remove('has-file');
+                    filenameDiv.textContent = '';
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('assessorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+            
+            // Reset states
+            error.classList.remove('active');
+            result.classList.remove('active');
+            
+            // Show loading
+            form.style.display = 'none';
+            loading.classList.add('active');
+            submitBtn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('transcript', document.getElementById('transcript').files[0]);
+                formData.append('evaluation', document.getElementById('evaluation').files[0]);
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Errore server: ${response.status}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                    displayResult(data);
+                } else {
+                    // Se il server risponde con HTML
+                    const html = await response.text();
+                    document.getElementById('resultContent').innerHTML = html;
+                }
+                
+                loading.classList.remove('active');
+                result.classList.add('active');
+                
+            } catch (err) {
+                loading.classList.remove('active');
+                form.style.display = 'block';
+                submitBtn.disabled = false;
+                error.classList.add('active');
+                document.getElementById('errorMessage').textContent = err.message;
+            }
+        });
+
+        function displayResult(data) {
+            const content = document.getElementById('resultContent');
+            
+            // Se il server manda HTML già formattato
+            if (data.html) {
+                content.innerHTML = data.html;
+                return;
+            }
+            
+            // Altrimenti costruisci l'HTML dai dati JSON
+            let html = '';
+            
+            // Statistiche
+            if (data.stats) {
+                html += `
+                    <h3>📈 Statistiche di Confronto</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="value">${data.stats.agreement || 0}%</div>
+                            <div class="label">Agreement Rate</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${data.stats.aiCount || 0}/37</div>
+                            <div class="label">Marker AI</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${data.stats.humanCount || 0}/37</div>
+                            <div class="label">Marker Umano</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value">${data.stats.matches || 0}</div>
+                            <div class="label">Match</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Confronto marker
+            if (data.comparison) {
+                html += `<h3>🔍 Confronto Dettagliato Marker</h3>`;
+                html += `<table>
+                    <tr>
+                        <th>Marker</th>
+                        <th>AI</th>
+                        <th>Umano</th>
+                        <th>Status</th>
+                    </tr>`;
+                
+                data.comparison.forEach(item => {
+                    const statusClass = item.match ? 'match' : 
+                                       (item.aiOnly ? 'ai-only' : 
+                                       (item.humanOnly ? 'human-only' : 'mismatch'));
+                    const statusText = item.match ? '✓ Match' :
+                                      (item.aiOnly ? '⚠ Solo AI' :
+                                      (item.humanOnly ? '⚠ Solo Umano' : '✗ Mismatch'));
+                    
+                    html += `<tr>
+                        <td>${item.id}</td>
+                        <td>${item.ai ? '✓' : '✗'}</td>
+                        <td>${item.human ? '✓' : '✗'}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>`;
+                });
+                
+                html += `</table>`;
+            }
+            
+            // Discrepanze
+            if (data.discrepancies && data.discrepancies.length > 0) {
+                html += `<h3>⚠️ Discrepanze da Analizzare</h3>`;
+                data.discrepancies.forEach(d => {
+                    html += `<p><strong>${d.id}:</strong> ${d.note}</p>`;
+                });
+            }
+            
+            content.innerHTML = html;
+        }
+
+        function resetForm() {
+            const form = document.getElementById('assessorForm');
+            const result = document.getElementById('result');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            form.reset();
+            form.style.display = 'block';
+            result.classList.remove('active');
+            submitBtn.disabled = false;
+            
+            // Reset file wrappers
+            document.querySelectorAll('.file-input-wrapper').forEach(wrapper => {
+                wrapper.classList.remove('has-file');
+                wrapper.querySelector('.filename').textContent = '';
+            });
+        }
+    </script>
+</body>
+</html>
